@@ -1,60 +1,50 @@
 package com.captcha.demo.Audio;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Base64;
-import javax.sound.sampled.AudioFileFormat;
-import org.springframework.stereotype.Service;
-import com.sun.speech.freetts.Voice;
-import com.sun.speech.freetts.VoiceManager;
-import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 
- 
+import java.io.ByteArrayOutputStream;
+import java.util.Locale;
+
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+
+import org.springframework.stereotype.Service;
+
+import marytts.LocalMaryInterface;
+import java.util.Base64;
 
 @Service
 public class TextToSpeechService {
 
-    public String convertTextToBase64(String text) {
-        // Initialize FreeTTS voice
-        System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
-        VoiceManager voiceManager = VoiceManager.getInstance();
-        Voice voice = voiceManager.getVoice("kevin");
-        if (voice == null) {
-            throw new IllegalArgumentException("Cannot find a voice named kevin16.");
-        }
-        voice.allocate();
-
-        try {
-            File tempFile = File.createTempFile("temp", ""); 
-            SingleFileAudioPlayer audioPlayer = new SingleFileAudioPlayer(tempFile.getAbsolutePath(), AudioFileFormat.Type.WAVE);
-            voice.setAudioPlayer(audioPlayer);
-            voice.speak(text);
-            audioPlayer.close();
-            byte[] audioBytes = Files.readAllBytes(tempFile.toPath());
-            System.err.println(Arrays.toString(audioBytes));
-            String base64String = Base64.getEncoder().encodeToString(audioBytes);
-            System.out.println("Base 64:" + base64String);
-            tempFile.delete();
-            return base64String;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            voice.deallocate();
-        }
+	public String getStream(String text)
+	{
+    try{
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		LocalMaryInterface mary = null;
+		mary = new LocalMaryInterface();
+		
+		AudioInputStream audio = null;
+		
+		mary.setLocale(Locale.US);
+		mary.setVoice("cmu-rms-hsmm");
+		audio = mary.generateAudio(text);
+		AudioSystem.write(audio, AudioFileFormat.Type.WAVE, outputStream);
+		byte[] audioBytes = outputStream.toByteArray(); 
+        return Base64.getEncoder().encodeToString(audioBytes);
     }
+    catch (Exception e) {
+        e.printStackTrace();
+        return null;
+	}
+}
 
     public static void main(String[] args) {
-        System.setProperty("freetts.voices","com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
         TextToSpeechService textToSpeechService = new TextToSpeechService();
-        String base64String = textToSpeechService.convertTextToBase64("A B C D");
-        if (base64String != null){
+        try {
+            String base64String = textToSpeechService.getStream("Hello");
             System.out.println(base64String);
-        }
-        else{
-            System.err.println("Failed");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to generate base64 encoded audio stream.");
         }
     }
-
 }

@@ -20,8 +20,8 @@ public AudioController(TextToSpeechService textToSpeechService) {
 public DataDTO helloWorld() {
     DataDTO dataDTO = new DataDTO();
     dataDTO.setId(103L);
-    dataDTO.setValue("Hi");
-    String base64Value = textToSpeechService.convertTextToBase64(dataDTO.getValue());
+    dataDTO.setValue("Hello");
+    String base64Value = textToSpeechService.getStream(dataDTO.getValue());
     dataDTO.setValue(base64Value);
     return dataDTO;
 }
