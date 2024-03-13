@@ -16,8 +16,8 @@ public AudioController(TextToSpeechService textToSpeechService) {
         this.textToSpeechService = textToSpeechService;
     }
    
-@GetMapping("/helloWorld")
-public DataDTO helloWorld() {
+@GetMapping("/generateCaptcha")
+public DataDTO generateCaptcha() {
     String captcha = CaptchaGenerator.getCaptcha();
     DataDTO dataDTO = new DataDTO();
     dataDTO.setId(1L);
